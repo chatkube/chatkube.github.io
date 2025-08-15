@@ -3,8 +3,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import Hero from "@/components/Hero";
-import Features from "@/components/Features";
-import WaitlistForm from "@/components/WaitlistForm";
+import EnhancedWaitlistForm from "@/components/EnhancedWaitlistForm";
 import { LogOut, Settings } from "lucide-react";
 
 const Index = () => {
@@ -40,8 +39,7 @@ const Index = () => {
       </nav>
 
       <Hero onJoinWaitlist={() => setShowWaitlist(true)} />
-      <Features />
-      <WaitlistForm 
+      <EnhancedWaitlistForm 
         isOpen={showWaitlist} 
         onClose={() => setShowWaitlist(false)} 
       />

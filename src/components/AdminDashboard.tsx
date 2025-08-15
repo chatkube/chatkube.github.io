@@ -11,6 +11,16 @@ interface WaitlistEntry {
   id: string;
   name: string;
   email: string;
+  company_size?: string;
+  role?: string;
+  primary_devops_domain?: string;
+  tech_stack?: string[];
+  pain_points?: string;
+  biggest_challenge?: string;
+  team_size?: string;
+  current_tools?: string[];
+  budget_range?: string;
+  timeline?: string;
   created_at: string;
 }
 
@@ -54,10 +64,20 @@ const AdminDashboard = () => {
 
   const exportToCSV = () => {
     const csvContent = [
-      ['Name', 'Email', 'Date Joined'],
+      ['Name', 'Email', 'Company Size', 'Role', 'Primary DevOps Domain', 'Tech Stack', 'Pain Points', 'Biggest Challenge', 'Team Size', 'Current Tools', 'Budget Range', 'Timeline', 'Date Joined'],
       ...waitlistEntries.map(entry => [
         entry.name,
         entry.email,
+        entry.company_size || '',
+        entry.role || '',
+        entry.primary_devops_domain || '',
+        (entry.tech_stack || []).join('; '),
+        entry.pain_points || '',
+        entry.biggest_challenge || '',
+        entry.team_size || '',
+        (entry.current_tools || []).join('; '),
+        entry.budget_range || '',
+        entry.timeline || '',
         new Date(entry.created_at).toLocaleDateString()
       ])
     ].map(row => row.join(',')).join('\n');
@@ -66,7 +86,7 @@ const AdminDashboard = () => {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'chatkube-waitlist.csv';
+    a.download = 'chatkube-enhanced-waitlist.csv';
     a.click();
     window.URL.revokeObjectURL(url);
   };
@@ -122,11 +142,94 @@ const AdminDashboard = () => {
           </div>
         </div>
 
+        {/* Analytics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Total Subscribers</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{waitlistEntries.length}</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Top Domain</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {(() => {
+                  const domains = waitlistEntries
+                    .map(entry => entry.primary_devops_domain)
+                    .filter(Boolean);
+                  const domainCounts = domains.reduce((acc, domain) => {
+                    acc[domain!] = (acc[domain!] || 0) + 1;
+                    return acc;
+                  }, {} as Record<string, number>);
+                  const topDomain = Object.entries(domainCounts)
+                    .sort(([,a], [,b]) => b - a)[0];
+                  return topDomain ? topDomain[0] : 'N/A';
+                })()}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Top Challenge</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {(() => {
+                  const challenges = waitlistEntries
+                    .map(entry => entry.biggest_challenge)
+                    .filter(Boolean);
+                  const challengeCounts = challenges.reduce((acc, challenge) => {
+                    acc[challenge!] = (acc[challenge!] || 0) + 1;
+                    return acc;
+                  }, {} as Record<string, number>);
+                  const topChallenge = Object.entries(challengeCounts)
+                    .sort(([,a], [,b]) => b - a)[0];
+                  return topChallenge ? topChallenge[0].replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'N/A';
+                })()}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Avg Company Size</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {(() => {
+                  const sizes = waitlistEntries
+                    .map(entry => entry.company_size)
+                    .filter(Boolean);
+                  if (sizes.length === 0) return 'N/A';
+                  
+                  const sizeMap: Record<string, number> = {
+                    '1-10': 5,
+                    '11-50': 30,
+                    '51-200': 125,
+                    '201-1000': 600,
+                    '1000+': 1000
+                  };
+                  
+                  const avgSize = sizes.reduce((sum, size) => sum + (sizeMap[size!] || 0), 0) / sizes.length;
+                  return avgSize < 50 ? 'Small' : avgSize < 200 ? 'Medium' : 'Large';
+                })()}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         <Card>
           <CardHeader>
             <CardTitle>Waitlist Entries ({waitlistEntries.length})</CardTitle>
             <CardDescription>
-              Manage your ChatKube waitlist subscribers
+              Manage your ChatKube waitlist subscribers with enhanced pain point data
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -135,26 +238,38 @@ const AdminDashboard = () => {
                 No waitlist entries yet.
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Date Joined</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {waitlistEntries.map((entry) => (
-                    <TableRow key={entry.id}>
-                      <TableCell className="font-medium">{entry.name}</TableCell>
-                      <TableCell>{entry.email}</TableCell>
-                      <TableCell>
-                        {new Date(entry.created_at).toLocaleDateString()}
-                      </TableCell>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Company</TableHead>
+                      <TableHead>Role</TableHead>
+                      <TableHead>Domain</TableHead>
+                      <TableHead>Challenge</TableHead>
+                      <TableHead>Date</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {waitlistEntries.map((entry) => (
+                      <TableRow key={entry.id}>
+                        <TableCell className="font-medium">{entry.name}</TableCell>
+                        <TableCell>{entry.email}</TableCell>
+                        <TableCell>{entry.company_size || '-'}</TableCell>
+                        <TableCell>{entry.role || '-'}</TableCell>
+                        <TableCell>{entry.primary_devops_domain || '-'}</TableCell>
+                        <TableCell className="max-w-xs truncate" title={entry.biggest_challenge}>
+                          {entry.biggest_challenge || '-'}
+                        </TableCell>
+                        <TableCell>
+                          {new Date(entry.created_at).toLocaleDateString()}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             )}
           </CardContent>
         </Card>
