@@ -1,11 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
-interface HeroProps {
-  onJoinWaitlist: () => void;
-}
-const Hero = ({
-  onJoinWaitlist
-}: HeroProps) => {
+const WAITLIST_URL = "https://docs.google.com/forms/d/e/1FAIpQLSemET0ZuXZS0ceEwVnads3RjTT1zFyPpKUyL3uoFIOoItCPGQ/viewform?usp=header";
+
+const Hero = () => {
   return <section className="relative min-h-screen flex items-center justify-center px-4 py-20">
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-hero opacity-20 blur-3xl"></div>
@@ -35,7 +32,7 @@ const Hero = ({
         </p>
         
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-          <Button variant="hero" size="lg" onClick={onJoinWaitlist} className="group">
+          <Button variant="hero" size="lg" onClick={() => window.open(WAITLIST_URL, '_blank')} className="group">
             Join the Waitlist
             <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
           </Button>
